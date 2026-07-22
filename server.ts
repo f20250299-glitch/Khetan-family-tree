@@ -19,7 +19,14 @@ function loadTreeData(): FamilyTreeData {
   try {
     if (fs.existsSync(DATA_FILE)) {
       const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (parsed.title === 'Sharma Family Tree') {
+        parsed.title = 'Khetan Family Tree';
+        parsed.titleHindi = 'खेतान परिवार वृक्ष';
+        parsed.persons = INITIAL_FAMILY_TREE.persons;
+        saveTreeData(parsed);
+      }
+      return parsed;
     }
   } catch (err) {
     console.error('Error reading family tree data file:', err);

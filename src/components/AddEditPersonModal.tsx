@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Person, Gender, Language } from '../types';
 import { AVATAR_PRESETS } from '../data/initialTree';
-import { X, Check, Upload, Image as ImageIcon, Info } from 'lucide-react';
+import { X, Check, Upload, Camera, Crop, Image as ImageIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { t } from '../utils/translations';
+import { ImageCropperModal } from './ImageCropperModal';
 
 interface AddEditPersonModalProps {
   personToEdit?: Person | null;
@@ -35,6 +36,13 @@ export const AddEditPersonModal: React.FC<AddEditPersonModalProps> = ({
   const [email, setEmail] = useState(personToEdit?.email || '');
   const [relationNotes, setRelationNotes] = useState(personToEdit?.relationNotes || '');
 
+  // Photo Upload & Cropping state
+  const [cropRawSrc, setCropRawSrc] = useState<string | null>(null);
+  const [showPresets, setShowPresets] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
   // Relationships select state
   const [selectedParentIds, setSelectedParentIds] = useState<string[]>(
     personToEdit?.parentIds || []
@@ -47,6 +55,21 @@ export const AddEditPersonModal: React.FC<AddEditPersonModalProps> = ({
   );
 
   const availableMembers = allPersons.filter((p) => !personToEdit || p.id !== personToEdit.id);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setCropRawSrc(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset input value so same file re-selection triggers change
+    e.target.value = '';
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,42 +142,141 @@ export const AddEditPersonModal: React.FC<AddEditPersonModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4 text-xs font-sans">
-          {/* Avatar Picker */}
-          <div>
-            <label className="block text-[#1A1A1A] font-bold uppercase text-[10px] tracking-wider mb-1.5">
-              {t(language, 'avatarSelection')}
+          {/* Photo Upload & Crop Section */}
+          <div className="bg-white border border-[#1A1A1A] p-3 shadow-[3px_3px_0px_#1A1A1A]">
+            <label className="block text-[#1A1A1A] font-bold uppercase text-[10px] tracking-wider mb-2">
+              {language === 'hi' ? 'सदस्य फोटो (Photo Upload & Crop)' : 'Member Photo (Upload & Crop)'}
             </label>
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-              {AVATAR_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => setAvatarUrl(preset.url)}
-                  className={`relative overflow-hidden border-2 transition shrink-0 ${
-                    avatarUrl === preset.url
-                      ? 'border-[#1A1A1A] scale-105 shadow-[3px_3px_0px_#C2410C]'
-                      : 'border-[#1A1A1A] opacity-60 hover:opacity-100'
-                  }`}
-                >
-                  <img src={preset.url} alt={preset.label} className="w-11 h-11 object-cover" />
-                  {avatarUrl === preset.url && (
-                    <div className="absolute inset-0 bg-[#C2410C]/20 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-[#1A1A1A] stroke-[3]" />
-                    </div>
-                  )}
-                </button>
-              ))}
+
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              {/* Photo Preview Thumbnail */}
+              <div className="relative group shrink-0">
+                <img
+                  src={avatarUrl}
+                  alt={name || 'Member'}
+                  className="w-16 h-16 rounded-full border-2 border-[#1A1A1A] object-cover bg-[#F7F5F2] shadow-[2px_2px_0px_#1A1A1A]"
+                />
+                {avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setCropRawSrc(avatarUrl)}
+                    className="absolute inset-0 bg-[#1A1A1A]/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white"
+                    title={language === 'hi' ? 'क्रॉप करें' : 'Crop current photo'}
+                  >
+                    <Crop className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Upload & Crop Buttons */}
+              <div className="flex-1 w-full space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Upload from Phone Gallery */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center justify-center gap-1.5 py-2 px-2 bg-[#1A1A1A] text-white hover:bg-[#333] border border-[#1A1A1A] font-bold text-[11px] uppercase tracking-wider transition shadow-[2px_2px_0px_#C2410C]"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{language === 'hi' ? 'फोन से फोटो' : 'Upload Photo'}</span>
+                  </button>
+
+                  {/* Take Photo via Camera */}
+                  <button
+                    type="button"
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="flex items-center justify-center gap-1.5 py-2 px-2 bg-white text-[#1A1A1A] hover:bg-[#EAE6DF] border border-[#1A1A1A] font-bold text-[11px] uppercase tracking-wider transition shadow-[2px_2px_0px_#1A1A1A]"
+                  >
+                    <Camera className="w-3.5 h-3.5 text-[#C2410C]" />
+                    <span>{language === 'hi' ? 'कैमरा फोटो' : 'Take Photo'}</span>
+                  </button>
+                </div>
+
+                {/* Adjust / Crop button if photo exists */}
+                {avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setCropRawSrc(avatarUrl)}
+                    className="w-full flex items-center justify-center gap-1.5 py-1.5 bg-[#F7F5F2] hover:bg-white text-[#1A1A1A] border border-[#1A1A1A] font-bold text-[10px] uppercase tracking-wider transition"
+                  >
+                    <Crop className="w-3.5 h-3.5 text-[#C2410C]" />
+                    <span>{language === 'hi' ? 'फोटो क्रॉप / एडजस्ट करें' : 'Crop & Adjust Photo'}</span>
+                  </button>
+                )}
+
+                {/* Hidden Native File Inputs */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
             </div>
 
-            {/* Custom URL Input */}
-            <input
-              type="url"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              placeholder="Or paste image URL here..."
-              className="mt-1.5 w-full px-3 py-2 bg-white border border-[#1A1A1A] text-[#1A1A1A] placeholder-[#888] focus:outline-none shadow-[2px_2px_0px_#1A1A1A]"
-            />
+            {/* Optional Collapsible Presets or Custom URL */}
+            <div className="mt-3 pt-2 border-t border-[#1A1A1A]/20">
+              <button
+                type="button"
+                onClick={() => setShowPresets(!showPresets)}
+                className="flex items-center justify-between w-full text-[10px] font-bold uppercase tracking-wider text-[#555] hover:text-[#1A1A1A]"
+              >
+                <span>{language === 'hi' ? 'या प्रीसेट अवतार / URL चुनें' : 'Or select preset avatar / URL'}</span>
+                {showPresets ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+
+              {showPresets && (
+                <div className="mt-2 space-y-2 animate-fade-in">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+                    {AVATAR_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => setAvatarUrl(preset.url)}
+                        className={`relative overflow-hidden border-2 transition shrink-0 rounded-full ${
+                          avatarUrl === preset.url
+                            ? 'border-[#C2410C] scale-105 shadow-[2px_2px_0px_#1A1A1A]'
+                            : 'border-[#1A1A1A] opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <img src={preset.url} alt={preset.label} className="w-10 h-10 object-cover" />
+                      </button>
+                    ))}
+                  </div>
+
+                  <input
+                    type="url"
+                    value={avatarUrl}
+                    onChange={(e) => setAvatarUrl(e.target.value)}
+                    placeholder="Paste image URL..."
+                    className="w-full px-2.5 py-1.5 bg-white border border-[#1A1A1A] text-[#1A1A1A] placeholder-[#888] focus:outline-none text-[11px]"
+                  />
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Image Cropper Modal */}
+          {cropRawSrc && (
+            <ImageCropperModal
+              imageSrc={cropRawSrc}
+              language={language}
+              onClose={() => setCropRawSrc(null)}
+              onCropComplete={(croppedUrl) => {
+                setAvatarUrl(croppedUrl);
+                setCropRawSrc(null);
+              }}
+            />
+          )}
 
           {/* Names */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

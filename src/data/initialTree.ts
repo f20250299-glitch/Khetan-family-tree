@@ -12,16 +12,16 @@ export const AVATAR_PRESETS = [
 ];
 
 export const INITIAL_FAMILY_TREE: FamilyTreeData = {
-  title: 'Sharma Family Tree',
-  titleHindi: 'शर्मा परिवार वृक्ष',
+  title: 'Khetan Family Tree',
+  titleHindi: 'खेतान परिवार वृक्ष',
   editPasswordHash: 'family123', // Plain or hashed default password
   lastUpdated: new Date().toISOString(),
   persons: [
     // Generation 1 (Grandparents)
     {
       id: 'p1',
-      name: 'Late Shri Ramlal Sharma',
-      nameHindi: 'स्व. श्री रामलाल शर्मा',
+      name: 'Late Shri Ramlal Khetan',
+      nameHindi: 'स्व. श्री रामलाल खेतान',
       gender: 'male',
       birthDate: '1942-08-15',
       isAlive: false,
@@ -29,7 +29,7 @@ export const INITIAL_FAMILY_TREE: FamilyTreeData = {
       birthPlace: 'Jaipur, Rajasthan',
       currentLocation: 'Jaipur',
       avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-      bio: 'Patriarch of the Sharma family. Resided in Jaipur and established the family ancestral home.',
+      bio: 'Patriarch of the Khetan family. Resided in Jaipur and established the family ancestral home.',
       relationNotes: 'Paternal Grandfather (Dada Ji / दादा जी) - Head of the family tree',
       spouseIds: ['p2'],
       parentIds: [],
@@ -37,8 +37,8 @@ export const INITIAL_FAMILY_TREE: FamilyTreeData = {
     },
     {
       id: 'p2',
-      name: 'Smt. Shanti Devi Sharma',
-      nameHindi: 'श्रीमती शांति देवी शर्मा',
+      name: 'Smt. Shanti Devi Khetan',
+      nameHindi: 'श्रीमती शांति देवी खेतान',
       gender: 'female',
       birthDate: '1947-03-10',
       isAlive: true,
@@ -55,8 +55,8 @@ export const INITIAL_FAMILY_TREE: FamilyTreeData = {
     // Generation 2 (Children of Gen 1)
     {
       id: 'p3',
-      name: 'Ramesh Sharma',
-      nameHindi: 'रमेश शर्मा',
+      name: 'Ramesh Khetan',
+      nameHindi: 'रमेश खेतान',
       gender: 'male',
       birthDate: '1968-05-12',
       isAlive: true,
@@ -71,8 +71,8 @@ export const INITIAL_FAMILY_TREE: FamilyTreeData = {
     },
     {
       id: 'p6',
-      name: 'Sunita Sharma',
-      nameHindi: 'सुनीता शर्मा',
+      name: 'Sunita Khetan',
+      nameHindi: 'सुनीता खेतान',
       gender: 'female',
       birthDate: '1972-09-24',
       isAlive: true,
@@ -87,8 +87,8 @@ export const INITIAL_FAMILY_TREE: FamilyTreeData = {
     },
     {
       id: 'p4',
-      name: 'Suresh Sharma',
-      nameHindi: 'सुरेश शर्मा',
+      name: 'Suresh Khetan',
+      nameHindi: 'सुरेश खेतान',
       gender: 'male',
       birthDate: '1973-11-05',
       isAlive: true,
@@ -103,8 +103,8 @@ export const INITIAL_FAMILY_TREE: FamilyTreeData = {
     },
     {
       id: 'p9',
-      name: 'Pooja Sharma',
-      nameHindi: 'पूजा शर्मा',
+      name: 'Pooja Khetan',
+      nameHindi: 'पूजा खेतान',
       gender: 'female',
       birthDate: '1976-02-18',
       isAlive: true,
@@ -119,8 +119,8 @@ export const INITIAL_FAMILY_TREE: FamilyTreeData = {
     },
     {
       id: 'p5',
-      name: 'Sunita Meena (Sharma)',
-      nameHindi: 'सुनीता मीना (शर्मा)',
+      name: 'Sunita Meena (Khetan)',
+      nameHindi: 'सुनीता मीना (खेतान)',
       gender: 'female',
       birthDate: '1978-07-30',
       isAlive: true,
@@ -137,8 +137,8 @@ export const INITIAL_FAMILY_TREE: FamilyTreeData = {
     // Generation 3 (Grandchildren)
     {
       id: 'p7',
-      name: 'Aarav Sharma',
-      nameHindi: 'आरव शर्मा',
+      name: 'Aarav Khetan',
+      nameHindi: 'आरव खेतान',
       gender: 'male',
       birthDate: '1998-12-14',
       isAlive: true,
@@ -153,8 +153,8 @@ export const INITIAL_FAMILY_TREE: FamilyTreeData = {
     },
     {
       id: 'p8',
-      name: 'Ananya Sharma',
-      nameHindi: 'अनन्या शर्मा',
+      name: 'Ananya Khetan',
+      nameHindi: 'अनन्या खेतान',
       gender: 'female',
       birthDate: '2002-04-22',
       isAlive: true,
@@ -169,8 +169,8 @@ export const INITIAL_FAMILY_TREE: FamilyTreeData = {
     },
     {
       id: 'p10',
-      name: 'Vihaan Sharma',
-      nameHindi: 'विहान शर्मा',
+      name: 'Vihaan Khetan',
+      nameHindi: 'विहान खेतान',
       gender: 'male',
       birthDate: '2006-08-09',
       isAlive: true,

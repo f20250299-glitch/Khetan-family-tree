@@ -1,6 +1,6 @@
 {
-  "name": "My Family Tree",
-  "description": "Mobile-optimized family tree builder with auto relationship calculation in English and Hindi, password-protected edit access, and cloud sync.",
-  "requestFramePermissions": [],
+  "name": "Khetan Family Tree",
+  "description": "Mobile-optimized Khetan family tree builder with auto relationship calculation in English and Hindi, photo upload & cropping, password-protected edit access, and cloud sync.",
+  "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
