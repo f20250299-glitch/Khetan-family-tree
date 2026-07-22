@@ -1,0 +1,196 @@
+import { Language } from '../types';
+
+export const translations = {
+  en: {
+    appTitle: 'My Family Tree',
+    appSubTitle: 'Connecting Generations • Preserving Family History',
+    viewMode: 'View Only Mode',
+    editMode: 'Edit Mode Active',
+    unlockEdit: 'Unlock Edit Access',
+    lockEdit: 'Lock Edit Mode',
+    enterPassword: 'Enter Family Edit Password',
+    passwordPlaceholder: 'Enter password (e.g., family123)',
+    submit: 'Submit',
+    cancel: 'Cancel',
+    wrongPassword: 'Incorrect password! Please try again.',
+    searchPlaceholder: 'Search family members by name...',
+    addMember: 'Add Family Member',
+    relationshipCalculator: 'Relation Calculator',
+    exportImport: 'Export / Sync Data',
+    treeView: 'Visual Tree View',
+    listView: 'Generations List',
+    birthdaysView: 'Birthdays & Events',
+    zoomIn: 'Zoom In',
+    zoomOut: 'Zoom Out',
+    resetView: 'Reset View',
+    dragToPan: 'Drag or touch canvas to pan around the family tree',
+
+    // Person Card Details
+    generationLabel: 'Generation',
+    born: 'Born',
+    died: 'Died',
+    age: 'Years old',
+    living: 'Living',
+    deceased: 'Deceased',
+    birthPlace: 'Birthplace',
+    currentLocation: 'Location',
+    phone: 'Phone / WhatsApp',
+    email: 'Email',
+    relationNotes: 'Relation Notes',
+    bio: 'Biography / Family Story',
+    autoRelations: 'Auto-Marked Relations',
+    viewDetails: 'View Full Profile',
+    editPerson: 'Edit Profile',
+    deletePerson: 'Remove Person',
+    confirmDelete: 'Are you sure you want to remove this family member from the tree?',
+
+    // Add / Edit Form Labels
+    fullName: 'Full Name (English)',
+    fullNameHindi: 'Full Name (Hindi / हिंदी)',
+    gender: 'Gender',
+    male: 'Male',
+    female: 'Female',
+    other: 'Other',
+    birthDate: 'Date of Birth',
+    isAliveLabel: 'Status',
+    deathDate: 'Date of Passing',
+    avatarSelection: 'Choose Avatar / Photo',
+    parents: 'Parents (Up to 2)',
+    spouses: 'Spouse / Partner',
+    children: 'Children',
+    addRelationNotes: 'Custom Relation Notes',
+    relationNotesHint: 'e.g., Eldest son of Late Shri Ram Sharma, Head of Jaipur branch',
+    savePerson: 'Save Member',
+
+    // Relationship Calculator
+    selectPersonA: 'Select First Person',
+    selectPersonB: 'Select Second Person',
+    relationshipResult: 'Calculated Relationship',
+    connectionPath: 'Family Connection Path',
+    calculateBtn: 'Calculate Relationship',
+
+    // Export/Import
+    exportTitle: 'Export or Backup Family Data',
+    downloadJson: 'Download Tree Backup (JSON)',
+    copyLink: 'Copy Private Share Link',
+    linkCopied: 'Link copied to clipboard!',
+    importTitle: 'Import / Restore Data',
+    restoreData: 'Upload JSON File',
+    resetDefault: 'Reset to Sample Tree',
+
+    // Stats
+    totalMembers: 'Total Members',
+    generationsCount: 'Generations',
+    livingMembers: 'Living Members',
+    upcomingEvents: 'Upcoming Birthdays',
+    noEvents: 'No upcoming birthdays in the next 30 days',
+
+    // Password setup
+    changePassword: 'Change Edit Password',
+    newPasswordLabel: 'New Password',
+    passwordUpdated: 'Password successfully updated!',
+
+    // Sync notification
+    syncedJustNow: 'Synced in real-time with cloud',
+    syncing: 'Syncing with cloud...',
+    readOnlyBanner: 'Anyone with this private link can view. Enter password to add or edit members.',
+  },
+  hi: {
+    appTitle: 'मेरा परिवार वृक्ष (My Family Tree)',
+    appSubTitle: 'पीढ़ियों को जोड़ना • पारिवारिक इतिहास का संरक्षण',
+    viewMode: 'केवल देखने का मोड',
+    editMode: 'संपादन मोड सक्रिय',
+    unlockEdit: 'संपादन एक्सेस अनलॉक करें',
+    lockEdit: 'मोड लॉक करें',
+    enterPassword: 'पारिवारिक संपादन पासवर्ड दर्ज करें',
+    passwordPlaceholder: 'पासवर्ड दर्ज करें (उदा. family123)',
+    submit: 'जमा करें',
+    cancel: 'रद्द करें',
+    wrongPassword: 'गलत पासवर्ड! कृपया पुनः प्रयास करें।',
+    searchPlaceholder: 'नाम से परिवार के सदस्यों को खोजें...',
+    addMember: 'नया सदस्य जोड़ें',
+    relationshipCalculator: 'रिश्ता कैलकुलेटर',
+    exportImport: 'डेटा निर्यात / सिंक',
+    treeView: 'चित्रात्मक वृक्ष दृश्य',
+    listView: 'पीढ़ीवार सूची',
+    birthdaysView: 'जन्मदिन और कार्यक्रम',
+    zoomIn: 'ज़ूम इन',
+    zoomOut: 'ज़ूम आउट',
+    resetView: 'दृष्य रीसेट करें',
+    dragToPan: 'फैमिली ट्री में घूमने के लिए स्क्रीन को खींचें (Drag/Touch)',
+
+    // Person Card Details
+    generationLabel: 'पीढ़ी',
+    born: 'जन्म तिथि',
+    died: 'स्वर्गवास',
+    age: 'वर्ष की आयु',
+    living: 'जीवित',
+    deceased: 'दिवंगत / स्वर्गवासी',
+    birthPlace: 'जन्म स्थान',
+    currentLocation: 'वर्तमान स्थान',
+    phone: 'फोन / व्हाट्सएप',
+    email: 'ईमेल',
+    relationNotes: 'संबंध नोट्स (रिश्ते की जानकारी)',
+    bio: 'जीवनी / पारिवारिक कहानी',
+    autoRelations: 'स्वचालित चिह्नित रिश्ते',
+    viewDetails: 'पूरा विवरण देखें',
+    editPerson: 'प्रोफ़ाइल संपादित करें',
+    deletePerson: 'सदस्य हटाएं',
+    confirmDelete: 'क्या आप निश्चित रूप से इस सदस्य को वृक्ष से हटाना चाहते हैं?',
+
+    // Add / Edit Form Labels
+    fullName: 'पूरा नाम (अंग्रेजी में)',
+    fullNameHindi: 'पूरा नाम (हिंदी में)',
+    gender: 'लिंग',
+    male: 'पुरुष',
+    female: 'महिला',
+    other: 'अन्य',
+    birthDate: 'जन्म तिथि',
+    isAliveLabel: 'स्थिति',
+    deathDate: 'स्वर्गवास की तिथि',
+    avatarSelection: 'अवतार / फोटो चुनें',
+    parents: 'माता-पिता (अधिकतम 2)',
+    spouses: 'पति / पत्नी',
+    children: 'बच्चे / संतान',
+    addRelationNotes: 'विशेष संबंध नोट्स',
+    relationNotesHint: 'उदा. स्व. श्री राम शर्मा के ज्येष्ठ पुत्र, जयपुर शाखा के प्रमुख',
+    savePerson: 'सदस्य सहेजें',
+
+    // Relationship Calculator
+    selectPersonA: 'पहला व्यक्ति चुनें',
+    selectPersonB: 'दूसरा व्यक्ति चुनें',
+    relationshipResult: 'निकाला गया रिश्ता',
+    connectionPath: 'पारिवारिक संबंध मार्ग',
+    calculateBtn: 'रिश्ते की गणना करें',
+
+    // Export/Import
+    exportTitle: 'पारिवारिक डेटा का बैकअप',
+    downloadJson: 'ट्री बैकअप डाउनलोड करें (JSON)',
+    copyLink: 'निजी शेयर लिंक कॉपी करें',
+    linkCopied: 'लिंक क्लिपबोर्ड पर कॉपी हो गया!',
+    importTitle: 'डेटा रिस्टोर / इम्पोर्ट करें',
+    restoreData: 'JSON फ़ाइल अपलोड करें',
+    resetDefault: 'सैंपल ट्री पर रीसेट करें',
+
+    // Stats
+    totalMembers: 'कुल सदस्य',
+    generationsCount: 'कुल पीढ़ियां',
+    livingMembers: 'जीवित सदस्य',
+    upcomingEvents: 'आगामी जन्मदिन',
+    noEvents: 'अगले 30 दिनों में कोई जन्मदिन नहीं',
+
+    // Password setup
+    changePassword: 'संपादन पासवर्ड बदलें',
+    newPasswordLabel: 'नया पासवर्ड',
+    passwordUpdated: 'पासवर्ड सफलतापूर्वक बदल दिया गया!',
+
+    // Sync notification
+    syncedJustNow: 'क्लाउड के साथ रीयल-टाइम सिंक हुआ',
+    syncing: 'क्लाउड सिंक हो रहा है...',
+    readOnlyBanner: 'लिंक वाले सभी लोग देख सकते हैं। सदस्य जोड़ने या बदलने के लिए पासवर्ड दर्ज करें।',
+  },
+};
+
+export function t(lang: Language, key: keyof typeof translations['en']): string {
+  return translations[lang][key] || translations['en'][key] || key;
+}
