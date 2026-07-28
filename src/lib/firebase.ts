@@ -20,10 +20,22 @@ function sanitizeForFirestore<T>(data: T): T {
 export function subscribeToTree(onUpdate: (data: FamilyTreeData) => void): () => void {
   const treeRef = doc(db, TREE_COLLECTION, TREE_DOC_PATH);
 
-  // Check if doc exists; if not, seed initial tree
+  // Check if doc exists; if not, seed with saved local tree or initial tree
   getDoc(treeRef).then((snapshot) => {
     if (!snapshot.exists()) {
-      setDoc(treeRef, sanitizeForFirestore(INITIAL_FAMILY_TREE)).catch((err) => {
+      let initialToSeed = INITIAL_FAMILY_TREE;
+      try {
+        const localSaved = localStorage.getItem('khetan_family_tree');
+        if (localSaved) {
+          const parsed = JSON.parse(localSaved);
+          if (parsed && Array.isArray(parsed.persons) && parsed.persons.length > 0) {
+            initialToSeed = parsed;
+          }
+        }
+      } catch (e) {
+        // ignore fallback
+      }
+      setDoc(treeRef, sanitizeForFirestore(initialToSeed)).catch((err) => {
         console.error('Error seeding initial family tree to Firestore:', err);
       });
     }
@@ -34,7 +46,9 @@ export function subscribeToTree(onUpdate: (data: FamilyTreeData) => void): () =>
   const unsubscribe = onSnapshot(treeRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.data() as FamilyTreeData;
-      onUpdate(data);
+      if (data && Array.isArray(data.persons)) {
+        onUpdate(data);
+      }
     }
   }, (error) => {
     console.error('Firestore real-time subscription error:', error);
@@ -46,5 +60,6 @@ export function subscribeToTree(onUpdate: (data: FamilyTreeData) => void): () =>
 export async function saveTreeToFirestore(data: FamilyTreeData): Promise<void> {
   const treeRef = doc(db, TREE_COLLECTION, TREE_DOC_PATH);
   const cleanData = sanitizeForFirestore(data);
-  await setDoc(treeRef, cleanData, { merge: true });
+  // Overwrite document to ensure full tree snapshot sync including person removals
+  await setDoc(treeRef, cleanData);
 }

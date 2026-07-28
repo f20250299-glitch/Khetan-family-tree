@@ -53,44 +53,19 @@ export default function App() {
   const [isChangingPassword, setIsChangingPassword] = useState<boolean>(false);
   const [isExportImportOpen, setIsExportImportOpen] = useState<boolean>(false);
 
-  // Merge remote tree with local tree safely so recent local additions are never wiped out by stale fetches
-  const mergeTreeIfNewer = useCallback((incomingTree: FamilyTreeData) => {
+  // Apply real-time updates from Firestore directly to React state and localStorage
+  const applyRemoteTreeUpdate = useCallback((incomingTree: FamilyTreeData) => {
     if (!incomingTree || !Array.isArray(incomingTree.persons)) return;
 
-    setTreeData((prev) => {
-      const prevPersons = prev?.persons || [];
-      const incomingPersons = incomingTree.persons || [];
-
-      // If local tree has data but incoming is empty, preserve local
-      if (prevPersons.length > 0 && incomingPersons.length === 0) {
-        return prev;
-      }
-
-      const prevTime = prev?.lastUpdated ? new Date(prev.lastUpdated).getTime() : 0;
-      const incomingTime = incomingTree.lastUpdated ? new Date(incomingTree.lastUpdated).getTime() : 0;
-
-      // If local has strictly more persons and incoming is older or equal in timestamp, keep local
-      if (prevPersons.length > incomingPersons.length && incomingTime <= prevTime) {
-        return prev;
-      }
-
-      // If incoming timestamp is newer, or if incoming has equal/more persons, accept incoming update
-      if (incomingTime > prevTime || (incomingTime === prevTime && incomingPersons.length >= prevPersons.length)) {
-        localStorage.setItem('khetan_family_tree', JSON.stringify(incomingTree));
-        return incomingTree;
-      }
-
-      // If incoming has fewer persons and same/older timestamp, keep local
-      if (prevPersons.length > 0 && incomingPersons.length < prevPersons.length) {
-        return prev;
-      }
-
+    setTreeData(incomingTree);
+    try {
       localStorage.setItem('khetan_family_tree', JSON.stringify(incomingTree));
-      return incomingTree;
-    });
+    } catch (e) {
+      console.warn('Could not update localStorage:', e);
+    }
   }, []);
 
-  // Fetch tree from server
+  // Fetch tree from server fallback on initial load if local tree is empty
   const loadTreeFromServer = useCallback(async () => {
     try {
       setIsSyncing(true);
@@ -98,8 +73,14 @@ export default function App() {
       const contentType = res.headers.get('content-type') || '';
       if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
-        if (data && typeof data === 'object') {
-          mergeTreeIfNewer(data);
+        if (data && typeof data === 'object' && Array.isArray(data.persons)) {
+          setTreeData((prev) => {
+            if (!prev.persons || prev.persons.length === 0 || data.persons.length > prev.persons.length) {
+              localStorage.setItem('khetan_family_tree', JSON.stringify(data));
+              return data;
+            }
+            return prev;
+          });
         }
       }
     } catch (err) {
@@ -107,14 +88,14 @@ export default function App() {
     } finally {
       setIsSyncing(false);
     }
-  }, [mergeTreeIfNewer]);
+  }, []);
 
   // Real-time Firestore sync listener across all connected devices and browsers
   useEffect(() => {
     setIsSyncing(true);
     const unsubscribe = subscribeToTree((firestoreTree) => {
-      if (firestoreTree && typeof firestoreTree === 'object') {
-        mergeTreeIfNewer(firestoreTree);
+      if (firestoreTree && typeof firestoreTree === 'object' && Array.isArray(firestoreTree.persons)) {
+        applyRemoteTreeUpdate(firestoreTree);
       }
       setIsSyncing(false);
     });
@@ -124,7 +105,7 @@ export default function App() {
     return () => {
       unsubscribe();
     };
-  }, [loadTreeFromServer, mergeTreeIfNewer]);
+  }, [loadTreeFromServer, applyRemoteTreeUpdate]);
 
   // Save updated tree to cloud (Firestore & server)
   const saveTreeDataToServer = async (newTree: FamilyTreeData) => {
