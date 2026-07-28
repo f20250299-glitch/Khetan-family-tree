@@ -18,7 +18,17 @@ import { ExportImportModal } from './components/ExportImportModal';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('en');
-  const [treeData, setTreeData] = useState<FamilyTreeData>(INITIAL_FAMILY_TREE);
+  const [treeData, setTreeData] = useState<FamilyTreeData>(() => {
+    const saved = localStorage.getItem('khetan_family_tree');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.warn('Could not parse saved tree from localStorage');
+      }
+    }
+    return INITIAL_FAMILY_TREE;
+  });
   const [editPassword, setEditPassword] = useState<string>('');
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -41,9 +51,13 @@ export default function App() {
     try {
       setIsSyncing(true);
       const res = await fetch('/api/tree');
-      if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
-        setTreeData(data);
+        if (data && typeof data === 'object') {
+          setTreeData(data);
+          localStorage.setItem('khetan_family_tree', JSON.stringify(data));
+        }
       }
     } catch (err) {
       console.warn('Backend tree sync error, using local state:', err);
@@ -62,6 +76,7 @@ export default function App() {
   // Save updated tree to server
   const saveTreeDataToServer = async (newTree: FamilyTreeData) => {
     setTreeData(newTree); // Optimistic UI update
+    localStorage.setItem('khetan_family_tree', JSON.stringify(newTree));
     try {
       setIsSyncing(true);
       const res = await fetch('/api/tree', {
@@ -85,63 +100,97 @@ export default function App() {
 
   // Password verification
   const handleVerifyPassword = async (pass: string): Promise<boolean> => {
+    const cleanPass = pass.trim();
+    const currentPassword = (treeData.editPasswordHash || 'Family1234').trim();
+
     try {
       const res = await fetch('/api/verify-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pass }),
+        body: JSON.stringify({ password: cleanPass }),
       });
 
-      if (res.ok) {
-        setEditPassword(pass);
-        setIsEditMode(true);
-        return true;
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data && data.success) {
+          setEditPassword(cleanPass);
+          setIsEditMode(true);
+          return true;
+        }
       }
     } catch (err) {
-      console.error('Error verifying password:', err);
+      console.error('Error verifying password via backend:', err);
     }
+
+    // Fallback for static Vercel deployments where /api backend is not available
+    if (
+      cleanPass === currentPassword ||
+      cleanPass.toLowerCase() === currentPassword.toLowerCase()
+    ) {
+      setEditPassword(cleanPass);
+      setIsEditMode(true);
+      return true;
+    }
+
     return false;
   };
 
   // Change password
   const handleChangePassword = async (newPass: string): Promise<boolean> => {
+    const cleanNewPass = newPass.trim();
+    const updatedTree: FamilyTreeData = {
+      ...treeData,
+      editPasswordHash: cleanNewPass,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    setTreeData(updatedTree);
+    localStorage.setItem('khetan_family_tree', JSON.stringify(updatedTree));
+
     try {
       const res = await fetch('/api/tree/password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-edit-password': editPassword || 'family123',
+          'x-edit-password': editPassword || 'Family1234',
         },
-        body: JSON.stringify({ newPassword: newPass }),
+        body: JSON.stringify({ newPassword: cleanNewPass }),
       });
 
       if (res.ok) {
-        setEditPassword(newPass);
+        setEditPassword(cleanNewPass);
         return true;
       }
     } catch (err) {
-      console.error('Error changing password:', err);
+      console.error('Error changing password on server:', err);
     }
-    return false;
+
+    setEditPassword(cleanNewPass);
+    return true;
   };
 
   // Reset to initial tree
   const handleResetTree = async () => {
+    const resetTree: FamilyTreeData = {
+      ...INITIAL_FAMILY_TREE,
+      editPasswordHash: treeData.editPasswordHash || 'Family1234',
+      lastUpdated: new Date().toISOString(),
+    };
+
+    setTreeData(resetTree);
+    localStorage.setItem('khetan_family_tree', JSON.stringify(resetTree));
+
     try {
-      const res = await fetch('/api/tree/reset', {
+      await fetch('/api/tree/reset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-edit-password': editPassword || 'family123',
+          'x-edit-password': editPassword || 'Family1234',
         },
       });
-
-      if (res.ok) {
-        const body = await res.json();
-        setTreeData(body.data);
-      }
     } catch (err) {
-      console.error('Error resetting tree:', err);
+      console.error('Error resetting tree on server:', err);
     }
   };
 
