@@ -20,14 +20,14 @@ function loadTreeData(): FamilyTreeData {
     if (fs.existsSync(DATA_FILE)) {
       const raw = fs.readFileSync(DATA_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
-      // Migrate / reset to fresh empty state for Khetan family tree if legacy sample data exists
-      if (!parsed.title || parsed.title.includes('Sharma') || parsed.editPasswordHash === 'family123' || parsed.persons?.length > 0) {
+      // Migrate legacy Sharma data or old default password if needed
+      if (!parsed.title || parsed.title.includes('Sharma') || parsed.editPasswordHash === 'family123') {
         const freshState: FamilyTreeData = {
           title: 'Khetan Family Tree',
           titleHindi: 'खेतान परिवार वृक्ष',
           editPasswordHash: 'Family1234',
           lastUpdated: new Date().toISOString(),
-          persons: [],
+          persons: parsed.persons && !parsed.title.includes('Sharma') ? parsed.persons : [],
         };
         saveTreeData(freshState);
         return freshState;
@@ -71,7 +71,10 @@ async function startServer() {
     const data = loadTreeData();
     const currentPass = data.editPasswordHash || 'Family1234';
 
-    if (password === currentPass) {
+    const cleanProvided = String(password || '').trim();
+    const cleanCurrent = String(currentPass || '').trim();
+
+    if (cleanProvided === cleanCurrent || cleanProvided.toLowerCase() === cleanCurrent.toLowerCase()) {
       res.json({ success: true });
     } else {
       res.status(401).json({ success: false, message: 'Invalid password' });
@@ -84,7 +87,10 @@ async function startServer() {
     const data = loadTreeData();
     const currentPass = data.editPasswordHash || 'Family1234';
 
-    if (providedPass === currentPass) {
+    const cleanProvided = String(providedPass || '').trim();
+    const cleanCurrent = String(currentPass || '').trim();
+
+    if (cleanProvided === cleanCurrent || cleanProvided.toLowerCase() === cleanCurrent.toLowerCase()) {
       next();
     } else {
       res.status(401).json({ error: 'Unauthorized: Incorrect or missing edit password' });

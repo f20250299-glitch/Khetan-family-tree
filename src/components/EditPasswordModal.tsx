@@ -30,14 +30,14 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
 
     try {
       if (isChangingPassword && onChangePassword) {
-        const success = await onChangePassword(newPassword);
+        const success = await onChangePassword(newPassword.trim());
         if (success) {
           onClose();
         } else {
           setErrorMsg(t(language, 'wrongPassword'));
         }
       } else {
-        const success = await onVerify(password);
+        const success = await onVerify(password.trim());
         if (success) {
           onClose();
         } else {
@@ -86,6 +86,9 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
                 type="password"
                 required
                 value={password}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t(language, 'passwordPlaceholder')}
                 className="w-full px-3 py-2.5 bg-white border border-[#1A1A1A] text-[#1A1A1A] focus:outline-none shadow-[2px_2px_0px_#1A1A1A]"
@@ -100,6 +103,9 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
                 type="password"
                 required
                 value={newPassword}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new edit password..."
                 className="w-full px-3 py-2.5 bg-white border border-[#1A1A1A] text-[#1A1A1A] focus:outline-none shadow-[2px_2px_0px_#1A1A1A]"
