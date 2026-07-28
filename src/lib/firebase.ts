@@ -13,13 +13,17 @@ export const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestore
 const TREE_DOC_PATH = 'main';
 const TREE_COLLECTION = 'familyTree';
 
+function sanitizeForFirestore<T>(data: T): T {
+  return JSON.parse(JSON.stringify(data, (_, value) => (value === undefined ? null : value)));
+}
+
 export function subscribeToTree(onUpdate: (data: FamilyTreeData) => void): () => void {
   const treeRef = doc(db, TREE_COLLECTION, TREE_DOC_PATH);
 
   // Check if doc exists; if not, seed initial tree
   getDoc(treeRef).then((snapshot) => {
     if (!snapshot.exists()) {
-      setDoc(treeRef, INITIAL_FAMILY_TREE).catch((err) => {
+      setDoc(treeRef, sanitizeForFirestore(INITIAL_FAMILY_TREE)).catch((err) => {
         console.error('Error seeding initial family tree to Firestore:', err);
       });
     }
@@ -41,5 +45,6 @@ export function subscribeToTree(onUpdate: (data: FamilyTreeData) => void): () =>
 
 export async function saveTreeToFirestore(data: FamilyTreeData): Promise<void> {
   const treeRef = doc(db, TREE_COLLECTION, TREE_DOC_PATH);
-  await setDoc(treeRef, data, { merge: true });
+  const cleanData = sanitizeForFirestore(data);
+  await setDoc(treeRef, cleanData, { merge: true });
 }
