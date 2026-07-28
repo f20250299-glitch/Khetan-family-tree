@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "entities": {
+    "familyTree": {
+      "title": "Family Tree",
+      "description": "Global family tree document for cross-device sync",
+      "type": "document",
+      "path": "familyTree/main",
+      "fields": {
+        "title": { "type": "string", "description": "Tree title in English" },
+        "titleHindi": { "type": "string", "description": "Tree title in Hindi" },
+        "editPasswordHash": { "type": "string", "description": "Edit password string" },
+        "lastUpdated": { "type": "string", "description": "Last updated ISO timestamp" },
+        "persons": { "type": "array", "description": "List of person objects" }
+      }
+    }
+  }
+}

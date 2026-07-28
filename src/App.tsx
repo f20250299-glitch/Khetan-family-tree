@@ -15,6 +15,7 @@ import { RelationshipCalculatorModal } from './components/RelationshipCalculator
 import { EditPasswordModal } from './components/EditPasswordModal';
 import { BirthdayAnniversaryTracker } from './components/BirthdayAnniversaryTracker';
 import { ExportImportModal } from './components/ExportImportModal';
+import { subscribeToTree, saveTreeToFirestore } from './lib/firebase';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('en');
@@ -72,33 +73,46 @@ export default function App() {
     }
   }, []);
 
-  // Poll server every 6 seconds for real-time sync across viewers
+  // Real-time Firestore sync listener across all connected devices and browsers
   useEffect(() => {
+    setIsSyncing(true);
+    const unsubscribe = subscribeToTree((firestoreTree) => {
+      if (firestoreTree && typeof firestoreTree === 'object') {
+        setTreeData(firestoreTree);
+        localStorage.setItem('khetan_family_tree', JSON.stringify(firestoreTree));
+      }
+      setIsSyncing(false);
+    });
+
+    // Also poll legacy endpoint if needed
     loadTreeFromServer();
-    const interval = setInterval(loadTreeFromServer, 6000);
-    return () => clearInterval(interval);
+
+    return () => {
+      unsubscribe();
+    };
   }, [loadTreeFromServer]);
 
-  // Save updated tree to server
+  // Save updated tree to cloud (Firestore & server)
   const saveTreeDataToServer = async (newTree: FamilyTreeData) => {
     setTreeData(newTree); // Optimistic UI update
     localStorage.setItem('khetan_family_tree', JSON.stringify(newTree));
     try {
       setIsSyncing(true);
-      const res = await fetch('/api/tree', {
+
+      // Save to Firebase Firestore for instant real-time sync on all devices
+      await saveTreeToFirestore(newTree);
+
+      // Also try express server backend
+      await fetch('/api/tree', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-edit-password': editPassword || 'Family1234',
         },
         body: JSON.stringify(newTree),
-      });
-
-      if (!res.ok) {
-        console.warn('Failed to save to cloud server:', await res.text());
-      }
+      }).catch(() => {});
     } catch (err) {
-      console.error('Error saving tree to server:', err);
+      console.error('Error saving tree to cloud:', err);
     } finally {
       setIsSyncing(false);
     }
@@ -179,19 +193,15 @@ export default function App() {
     localStorage.setItem('khetan_family_tree', JSON.stringify(updatedTree));
 
     try {
-      const res = await fetch('/api/tree/password', {
+      await saveTreeToFirestore(updatedTree);
+      await fetch('/api/tree/password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-edit-password': editPassword || 'Family1234',
         },
         body: JSON.stringify({ newPassword: cleanNewPass }),
-      });
-
-      if (res.ok) {
-        setEditPassword(cleanNewPass);
-        return true;
-      }
+      }).catch(() => {});
     } catch (err) {
       console.error('Error changing password on server:', err);
     }
@@ -212,13 +222,14 @@ export default function App() {
     localStorage.setItem('khetan_family_tree', JSON.stringify(resetTree));
 
     try {
+      await saveTreeToFirestore(resetTree);
       await fetch('/api/tree/reset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-edit-password': editPassword || 'Family1234',
         },
-      });
+      }).catch(() => {});
     } catch (err) {
       console.error('Error resetting tree on server:', err);
     }
