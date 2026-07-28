@@ -53,6 +53,43 @@ export default function App() {
   const [isChangingPassword, setIsChangingPassword] = useState<boolean>(false);
   const [isExportImportOpen, setIsExportImportOpen] = useState<boolean>(false);
 
+  // Merge remote tree with local tree safely so recent local additions are never wiped out by stale fetches
+  const mergeTreeIfNewer = useCallback((incomingTree: FamilyTreeData) => {
+    if (!incomingTree || !Array.isArray(incomingTree.persons)) return;
+
+    setTreeData((prev) => {
+      const prevPersons = prev?.persons || [];
+      const incomingPersons = incomingTree.persons || [];
+
+      // If local tree has data but incoming is empty, preserve local
+      if (prevPersons.length > 0 && incomingPersons.length === 0) {
+        return prev;
+      }
+
+      const prevTime = prev?.lastUpdated ? new Date(prev.lastUpdated).getTime() : 0;
+      const incomingTime = incomingTree.lastUpdated ? new Date(incomingTree.lastUpdated).getTime() : 0;
+
+      // If local has strictly more persons and incoming is older or equal in timestamp, keep local
+      if (prevPersons.length > incomingPersons.length && incomingTime <= prevTime) {
+        return prev;
+      }
+
+      // If incoming timestamp is newer, or if incoming has equal/more persons, accept incoming update
+      if (incomingTime > prevTime || (incomingTime === prevTime && incomingPersons.length >= prevPersons.length)) {
+        localStorage.setItem('khetan_family_tree', JSON.stringify(incomingTree));
+        return incomingTree;
+      }
+
+      // If incoming has fewer persons and same/older timestamp, keep local
+      if (prevPersons.length > 0 && incomingPersons.length < prevPersons.length) {
+        return prev;
+      }
+
+      localStorage.setItem('khetan_family_tree', JSON.stringify(incomingTree));
+      return incomingTree;
+    });
+  }, []);
+
   // Fetch tree from server
   const loadTreeFromServer = useCallback(async () => {
     try {
@@ -62,8 +99,7 @@ export default function App() {
       if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
         if (data && typeof data === 'object') {
-          setTreeData(data);
-          localStorage.setItem('khetan_family_tree', JSON.stringify(data));
+          mergeTreeIfNewer(data);
         }
       }
     } catch (err) {
@@ -71,36 +107,40 @@ export default function App() {
     } finally {
       setIsSyncing(false);
     }
-  }, []);
+  }, [mergeTreeIfNewer]);
 
   // Real-time Firestore sync listener across all connected devices and browsers
   useEffect(() => {
     setIsSyncing(true);
     const unsubscribe = subscribeToTree((firestoreTree) => {
       if (firestoreTree && typeof firestoreTree === 'object') {
-        setTreeData(firestoreTree);
-        localStorage.setItem('khetan_family_tree', JSON.stringify(firestoreTree));
+        mergeTreeIfNewer(firestoreTree);
       }
       setIsSyncing(false);
     });
 
-    // Also poll legacy endpoint if needed
     loadTreeFromServer();
 
     return () => {
       unsubscribe();
     };
-  }, [loadTreeFromServer]);
+  }, [loadTreeFromServer, mergeTreeIfNewer]);
 
   // Save updated tree to cloud (Firestore & server)
   const saveTreeDataToServer = async (newTree: FamilyTreeData) => {
-    setTreeData(newTree); // Optimistic UI update
-    localStorage.setItem('khetan_family_tree', JSON.stringify(newTree));
+    const preparedTree: FamilyTreeData = {
+      ...newTree,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    setTreeData(preparedTree); // Immediate optimistic state update
+    localStorage.setItem('khetan_family_tree', JSON.stringify(preparedTree));
+
     try {
       setIsSyncing(true);
 
       // Save to Firebase Firestore for instant real-time sync on all devices
-      await saveTreeToFirestore(newTree);
+      await saveTreeToFirestore(preparedTree);
 
       // Also try express server backend
       await fetch('/api/tree', {
@@ -109,7 +149,7 @@ export default function App() {
           'Content-Type': 'application/json',
           'x-edit-password': editPassword || 'Family1234',
         },
-        body: JSON.stringify(newTree),
+        body: JSON.stringify(preparedTree),
       }).catch(() => {});
     } catch (err) {
       console.error('Error saving tree to cloud:', err);
