@@ -343,8 +343,87 @@ export const MobileTreeView: React.FC<MobileTreeViewProps> = ({
   };
 
   const handleZoom = (delta: number) => {
-    setZoom((prev) => Math.min(2.0, Math.max(0.35, prev + delta)));
+    setZoom((prev) => Math.min(2.5, Math.max(0.3, prev + delta)));
   };
+
+  // Native Non-Passive 2-finger Touch Pinch to Zoom & Trackpad Wheel Zoom
+  useEffect(() => {
+    const element = canvasRef.current;
+    if (!element) return;
+
+    let initialDist = 0;
+    let startZoom = zoom;
+    let startPan = { ...pan };
+    let startMid = { x: 0, y: 0 };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        initialDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        startZoom = zoom;
+        startPan = { ...pan };
+        startMid = {
+          x: (t1.clientX + t2.clientX) / 2,
+          y: (t1.clientY + t2.clientY) / 2,
+        };
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && initialDist > 0) {
+        e.preventDefault();
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        if (currentDist > 0) {
+          const ratio = currentDist / initialDist;
+          const newZoom = Math.min(2.5, Math.max(0.3, startZoom * ratio));
+
+          const currentMid = {
+            x: (t1.clientX + t2.clientX) / 2,
+            y: (t1.clientY + t2.clientY) / 2,
+          };
+
+          const zoomFactor = newZoom / startZoom;
+          const newPanX = currentMid.x - (startMid.x - startPan.x) * zoomFactor;
+          const newPanY = currentMid.y - (startMid.y - startPan.y) * zoomFactor;
+
+          setZoom(newZoom);
+          setPan({ x: newPanX, y: newPanY });
+        }
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        initialDist = 0;
+      }
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const zoomDelta = e.deltaY < 0 ? 0.1 : -0.1;
+        setZoom((prev) => Math.min(2.5, Math.max(0.3, prev + zoomDelta)));
+      }
+    };
+
+    element.addEventListener('touchstart', handleTouchStart, { passive: false });
+    element.addEventListener('touchmove', handleTouchMove, { passive: false });
+    element.addEventListener('touchend', handleTouchEnd);
+    element.addEventListener('touchcancel', handleTouchEnd);
+    element.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart);
+      element.removeEventListener('touchmove', handleTouchMove);
+      element.removeEventListener('touchend', handleTouchEnd);
+      element.removeEventListener('touchcancel', handleTouchEnd);
+      element.removeEventListener('wheel', handleWheel);
+    };
+  }, [zoom, pan]);
 
   const centerTreeOnMainRoot = () => {
     if (!canvasRef.current) return;

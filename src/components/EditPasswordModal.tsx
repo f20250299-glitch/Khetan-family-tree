@@ -90,9 +90,6 @@ export const EditPasswordModal: React.FC<EditPasswordModalProps> = ({
                 placeholder={t(language, 'passwordPlaceholder')}
                 className="w-full px-3 py-2.5 bg-white border border-[#1A1A1A] text-[#1A1A1A] focus:outline-none shadow-[2px_2px_0px_#1A1A1A]"
               />
-              <p className="mt-2 text-[11px] text-[#555] font-serif italic">
-                Default password: <strong className="text-[#C2410C] font-mono not-italic font-bold">family123</strong>
-              </p>
             </div>
           ) : (
             <div>

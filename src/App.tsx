@@ -68,7 +68,7 @@ export default function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-edit-password': editPassword || 'family123',
+          'x-edit-password': editPassword || 'Family1234',
         },
         body: JSON.stringify(newTree),
       });

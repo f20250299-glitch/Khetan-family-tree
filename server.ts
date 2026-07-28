@@ -20,11 +20,17 @@ function loadTreeData(): FamilyTreeData {
     if (fs.existsSync(DATA_FILE)) {
       const raw = fs.readFileSync(DATA_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
-      if (parsed.title === 'Sharma Family Tree') {
-        parsed.title = 'Khetan Family Tree';
-        parsed.titleHindi = 'खेतान परिवार वृक्ष';
-        parsed.persons = INITIAL_FAMILY_TREE.persons;
-        saveTreeData(parsed);
+      // Migrate / reset to fresh empty state for Khetan family tree if legacy sample data exists
+      if (!parsed.title || parsed.title.includes('Sharma') || parsed.editPasswordHash === 'family123' || parsed.persons?.length > 0) {
+        const freshState: FamilyTreeData = {
+          title: 'Khetan Family Tree',
+          titleHindi: 'खेतान परिवार वृक्ष',
+          editPasswordHash: 'Family1234',
+          lastUpdated: new Date().toISOString(),
+          persons: [],
+        };
+        saveTreeData(freshState);
+        return freshState;
       }
       return parsed;
     }
@@ -63,7 +69,7 @@ async function startServer() {
   api.post('/verify-password', (req, res) => {
     const { password } = req.body;
     const data = loadTreeData();
-    const currentPass = data.editPasswordHash || 'family123';
+    const currentPass = data.editPasswordHash || 'Family1234';
 
     if (password === currentPass) {
       res.json({ success: true });
@@ -76,7 +82,7 @@ async function startServer() {
   const requirePassword = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const providedPass = req.headers['x-edit-password'];
     const data = loadTreeData();
-    const currentPass = data.editPasswordHash || 'family123';
+    const currentPass = data.editPasswordHash || 'Family1234';
 
     if (providedPass === currentPass) {
       next();
@@ -95,7 +101,7 @@ async function startServer() {
     const currentData = loadTreeData();
     const updatedData: FamilyTreeData = {
       ...newTreeData,
-      editPasswordHash: currentData.editPasswordHash || 'family123',
+      editPasswordHash: currentData.editPasswordHash || 'Family1234',
       lastUpdated: new Date().toISOString(),
     };
 

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Person, Gender, Language } from '../types';
 import { AVATAR_PRESETS } from '../data/initialTree';
-import { X, Check, Upload, Camera, Crop, Image as ImageIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Check, Upload, Camera, Crop, Image as ImageIcon, ChevronDown, ChevronUp, Phone, Mail } from 'lucide-react';
 import { t } from '../utils/translations';
 import { ImageCropperModal } from './ImageCropperModal';
 
@@ -498,30 +498,32 @@ export const AddEditPersonModal: React.FC<AddEditPersonModalProps> = ({
           </div>
 
           {/* Contact Details & Bio */}
-          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-[#1A1A1A]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[#1A1A1A]">
             <div>
-              <label className="block text-[#1A1A1A] font-bold uppercase text-[10px] tracking-wider mb-1">
-                {t(language, 'phone')}
+              <label className="block text-[#1A1A1A] font-bold uppercase text-[10px] tracking-wider mb-1 flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-[#C2410C]" />
+                <span>{t(language, 'phone')} (WhatsApp/Call)</span>
               </label>
               <input
-                type="text"
+                type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+91 9876543210"
-                className="w-full px-3 py-2 bg-white border border-[#1A1A1A] text-[#1A1A1A] focus:outline-none shadow-[2px_2px_0px_#1A1A1A]"
+                className="w-full px-3 py-2 bg-white border border-[#1A1A1A] text-[#1A1A1A] focus:outline-none shadow-[2px_2px_0px_#1A1A1A] text-xs"
               />
             </div>
 
             <div>
-              <label className="block text-[#1A1A1A] font-bold uppercase text-[10px] tracking-wider mb-1">
-                {t(language, 'email')}
+              <label className="block text-[#1A1A1A] font-bold uppercase text-[10px] tracking-wider mb-1 flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-[#C2410C]" />
+                <span>{t(language, 'email')}</span>
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@example.com"
-                className="w-full px-3 py-2 bg-white border border-[#1A1A1A] text-[#1A1A1A] focus:outline-none shadow-[2px_2px_0px_#1A1A1A]"
+                className="w-full px-3 py-2 bg-white border border-[#1A1A1A] text-[#1A1A1A] focus:outline-none shadow-[2px_2px_0px_#1A1A1A] text-xs"
               />
             </div>
           </div>
