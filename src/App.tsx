@@ -16,6 +16,7 @@ import { EditPasswordModal } from './components/EditPasswordModal';
 import { BirthdayAnniversaryTracker } from './components/BirthdayAnniversaryTracker';
 import { ExportImportModal } from './components/ExportImportModal';
 import { subscribeToTree, saveTreeToFirestore } from './lib/firebase';
+import { sanitizeAndCompressTreePhotos } from './utils/imageCompressor';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('en');
@@ -114,14 +115,22 @@ export default function App() {
       lastUpdated: new Date().toISOString(),
     };
 
-    setTreeData(preparedTree); // Immediate optimistic state update
-    localStorage.setItem('khetan_family_tree', JSON.stringify(preparedTree));
+    // Immediate optimistic state update to React state & LocalStorage
+    setTreeData(preparedTree);
+    try {
+      localStorage.setItem('khetan_family_tree', JSON.stringify(preparedTree));
+    } catch (e) {
+      console.warn('LocalStorage save failed:', e);
+    }
 
     try {
       setIsSyncing(true);
 
+      // Compress any large photos to lightweight thumbnails (~10KB) for Firestore
+      const compressedTree = await sanitizeAndCompressTreePhotos(preparedTree);
+
       // Save to Firebase Firestore for instant real-time sync on all devices
-      await saveTreeToFirestore(preparedTree);
+      await saveTreeToFirestore(compressedTree);
 
       // Also try express server backend
       await fetch('/api/tree', {
@@ -130,7 +139,7 @@ export default function App() {
           'Content-Type': 'application/json',
           'x-edit-password': editPassword || 'Family1234',
         },
-        body: JSON.stringify(preparedTree),
+        body: JSON.stringify(compressedTree),
       }).catch(() => {});
     } catch (err) {
       console.error('Error saving tree to cloud:', err);

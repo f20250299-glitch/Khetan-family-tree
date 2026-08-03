@@ -48,7 +48,7 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
 
     const img = imageRef.current;
     const canvas = document.createElement('canvas');
-    const CROP_SIZE = 300; // Output high quality square avatar size
+    const CROP_SIZE = 180; // Compact square avatar size (~8KB)
     canvas.width = CROP_SIZE;
     canvas.height = CROP_SIZE;
 
@@ -63,7 +63,7 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
     ctx.translate(CROP_SIZE / 2, CROP_SIZE / 2);
     ctx.rotate((rotation * Math.PI) / 180);
 
-    // Calculate scale factor between display viewport (240px) and canvas (300px)
+    // Calculate scale factor between display viewport (240px) and canvas (180px)
     const displaySize = 240;
     const displayToCanvasRatio = CROP_SIZE / displaySize;
 
@@ -89,7 +89,7 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
     ctx.restore();
 
     // Export compressed JPEG base64
-    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.72);
     onCropComplete(croppedDataUrl);
   };
 

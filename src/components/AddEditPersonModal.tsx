@@ -4,6 +4,7 @@ import { AVATAR_PRESETS } from '../data/initialTree';
 import { X, Check, Upload, Camera, Crop, Image as ImageIcon, ChevronDown, ChevronUp, Phone, Mail } from 'lucide-react';
 import { t } from '../utils/translations';
 import { ImageCropperModal } from './ImageCropperModal';
+import { compressAvatarImage } from '../utils/imageCompressor';
 
 interface AddEditPersonModalProps {
   personToEdit?: Person | null;
@@ -71,9 +72,18 @@ export const AddEditPersonModal: React.FC<AddEditPersonModalProps> = ({
     e.target.value = '';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    let finalAvatar = avatarUrl;
+    if (finalAvatar && finalAvatar.startsWith('data:image/')) {
+      try {
+        finalAvatar = await compressAvatarImage(finalAvatar, 180, 0.7);
+      } catch (e) {
+        // keep fallback
+      }
+    }
 
     onSave({
       id: personToEdit?.id,
@@ -85,7 +95,7 @@ export const AddEditPersonModal: React.FC<AddEditPersonModalProps> = ({
       deathDate: isAlive ? undefined : deathDate || undefined,
       birthPlace: birthPlace.trim() || undefined,
       currentLocation: currentLocation.trim() || undefined,
-      avatarUrl,
+      avatarUrl: finalAvatar,
       bio: bio.trim() || undefined,
       phone: phone.trim() || undefined,
       email: email.trim() || undefined,

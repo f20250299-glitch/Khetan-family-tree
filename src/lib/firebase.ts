@@ -3,6 +3,7 @@ import { getFirestore, doc, onSnapshot, setDoc, getDoc } from 'firebase/firestor
 import firebaseConfig from '../../firebase-applet-config.json';
 import { FamilyTreeData } from '../types';
 import { INITIAL_FAMILY_TREE } from '../data/initialTree';
+import { sanitizeAndCompressTreePhotos } from '../utils/imageCompressor';
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
@@ -21,7 +22,7 @@ export function subscribeToTree(onUpdate: (data: FamilyTreeData) => void): () =>
   const treeRef = doc(db, TREE_COLLECTION, TREE_DOC_PATH);
 
   // Check if doc exists; if not, seed with saved local tree or initial tree
-  getDoc(treeRef).then((snapshot) => {
+  getDoc(treeRef).then(async (snapshot) => {
     if (!snapshot.exists()) {
       let initialToSeed = INITIAL_FAMILY_TREE;
       try {
@@ -35,7 +36,8 @@ export function subscribeToTree(onUpdate: (data: FamilyTreeData) => void): () =>
       } catch (e) {
         // ignore fallback
       }
-      setDoc(treeRef, sanitizeForFirestore(initialToSeed)).catch((err) => {
+      const compressedInitial = await sanitizeAndCompressTreePhotos(initialToSeed);
+      setDoc(treeRef, sanitizeForFirestore(compressedInitial)).catch((err) => {
         console.error('Error seeding initial family tree to Firestore:', err);
       });
     }
@@ -58,8 +60,13 @@ export function subscribeToTree(onUpdate: (data: FamilyTreeData) => void): () =>
 }
 
 export async function saveTreeToFirestore(data: FamilyTreeData): Promise<void> {
-  const treeRef = doc(db, TREE_COLLECTION, TREE_DOC_PATH);
-  const cleanData = sanitizeForFirestore(data);
-  // Overwrite document to ensure full tree snapshot sync including person removals
-  await setDoc(treeRef, cleanData);
+  try {
+    const treeRef = doc(db, TREE_COLLECTION, TREE_DOC_PATH);
+    const compressedData = await sanitizeAndCompressTreePhotos(data);
+    const cleanData = sanitizeForFirestore(compressedData);
+    // Overwrite document to ensure full tree snapshot sync including person removals
+    await setDoc(treeRef, cleanData);
+  } catch (err) {
+    console.error('Error saving tree to Firestore:', err);
+  }
 }
