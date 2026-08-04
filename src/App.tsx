@@ -54,17 +54,48 @@ export default function App() {
   const [isChangingPassword, setIsChangingPassword] = useState<boolean>(false);
   const [isExportImportOpen, setIsExportImportOpen] = useState<boolean>(false);
 
-  // Apply real-time updates from Firestore directly to React state and localStorage
+  // Apply real-time updates from Firestore directly to React state and localStorage with conflict protection
   const applyRemoteTreeUpdate = useCallback((incomingTree: FamilyTreeData) => {
     if (!incomingTree || !Array.isArray(incomingTree.persons)) return;
 
     const cleaned = removeTreePhotos(incomingTree);
-    setTreeData(cleaned);
-    try {
-      localStorage.setItem('khetan_family_tree', JSON.stringify(cleaned));
-    } catch (e) {
-      console.warn('Could not update localStorage:', e);
-    }
+
+    setTreeData((prev) => {
+      if (!prev || !Array.isArray(prev.persons) || prev.persons.length === 0) {
+        try {
+          localStorage.setItem('khetan_family_tree', JSON.stringify(cleaned));
+        } catch (e) {}
+        return cleaned;
+      }
+
+      const prevTime = prev.lastUpdated ? new Date(prev.lastUpdated).getTime() : 0;
+      const incomingTime = cleaned.lastUpdated ? new Date(cleaned.lastUpdated).getTime() : 0;
+
+      // Protect newly added local members: if local tree has more persons and equal/newer timestamp, keep local
+      if (prev.persons.length > cleaned.persons.length && prevTime >= incomingTime) {
+        console.warn('Protecting local tree with more members from older remote snapshot');
+        // Heal Firestore with the larger local tree
+        saveTreeToFirestore(prev).catch(() => {});
+        return prev;
+      }
+
+      // If timestamps match and counts match, don't trigger unnecessary re-renders
+      if (prevTime === incomingTime && prev.persons.length === cleaned.persons.length) {
+        return prev;
+      }
+
+      // If incoming tree is strictly newer or has more persons, adopt remote
+      if (incomingTime > prevTime || cleaned.persons.length > prev.persons.length) {
+        try {
+          localStorage.setItem('khetan_family_tree', JSON.stringify(cleaned));
+        } catch (e) {
+          console.warn('Could not update localStorage:', e);
+        }
+        return cleaned;
+      }
+
+      return prev;
+    });
   }, []);
 
   // Fetch tree from server fallback on initial load if local tree is empty
@@ -76,14 +107,7 @@ export default function App() {
       if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
         if (data && typeof data === 'object' && Array.isArray(data.persons)) {
-          const cleaned = removeTreePhotos(data);
-          setTreeData((prev) => {
-            if (!prev.persons || prev.persons.length === 0 || cleaned.persons.length > prev.persons.length) {
-              localStorage.setItem('khetan_family_tree', JSON.stringify(cleaned));
-              return cleaned;
-            }
-            return prev;
-          });
+          applyRemoteTreeUpdate(data);
         }
       }
     } catch (err) {
@@ -91,7 +115,7 @@ export default function App() {
     } finally {
       setIsSyncing(false);
     }
-  }, []);
+  }, [applyRemoteTreeUpdate]);
 
 
   // Real-time Firestore sync listener across all connected devices and browsers
