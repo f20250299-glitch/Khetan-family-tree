@@ -66,14 +66,8 @@ export const PersonDetailModal: React.FC<PersonDetailModalProps> = ({
       <div className="bg-[#F7F5F2] border-2 border-[#1A1A1A] w-full max-w-lg overflow-hidden shadow-[10px_10px_0px_#1A1A1A] flex flex-col max-h-[90vh]">
         {/* Header Banner */}
         <div className="relative bg-white p-5 border-b border-[#1A1A1A] flex items-center justify-between">
-          <div className="flex items-center gap-4 min-w-0">
-            <img
-              src={person.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
-              alt={person.name}
-              className="w-16 h-16 object-cover border border-[#1A1A1A] shadow-[3px_3px_0px_#1A1A1A] shrink-0"
-            />
-            <div className="min-w-0">
-              <h2 className="text-xl font-serif font-bold text-[#1A1A1A] truncate leading-tight">
+          <div className="min-w-0">
+            <h2 className="text-xl font-serif font-bold text-[#1A1A1A] truncate leading-tight">
                 {language === 'hi' && person.nameHindi ? person.nameHindi : person.name}
               </h2>
               {person.nameHindi && (
@@ -98,7 +92,6 @@ export const PersonDetailModal: React.FC<PersonDetailModalProps> = ({
                 )}
               </div>
             </div>
-          </div>
 
           <button
             onClick={onClose}

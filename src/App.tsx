@@ -16,7 +16,7 @@ import { EditPasswordModal } from './components/EditPasswordModal';
 import { BirthdayAnniversaryTracker } from './components/BirthdayAnniversaryTracker';
 import { ExportImportModal } from './components/ExportImportModal';
 import { subscribeToTree, saveTreeToFirestore } from './lib/firebase';
-import { sanitizeAndCompressTreePhotos } from './utils/imageCompressor';
+import { removeTreePhotos, sanitizeAndCompressTreePhotos } from './utils/imageCompressor';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('en');
@@ -29,13 +29,13 @@ export default function App() {
           if (!parsed.editPasswordHash || parsed.editPasswordHash.toLowerCase() === 'family123') {
             parsed.editPasswordHash = 'Family1234';
           }
-          return parsed;
+          return removeTreePhotos(parsed);
         }
       } catch (e) {
         console.warn('Could not parse saved tree from localStorage');
       }
     }
-    return INITIAL_FAMILY_TREE;
+    return removeTreePhotos(INITIAL_FAMILY_TREE);
   });
   const [editPassword, setEditPassword] = useState<string>('');
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -58,9 +58,10 @@ export default function App() {
   const applyRemoteTreeUpdate = useCallback((incomingTree: FamilyTreeData) => {
     if (!incomingTree || !Array.isArray(incomingTree.persons)) return;
 
-    setTreeData(incomingTree);
+    const cleaned = removeTreePhotos(incomingTree);
+    setTreeData(cleaned);
     try {
-      localStorage.setItem('khetan_family_tree', JSON.stringify(incomingTree));
+      localStorage.setItem('khetan_family_tree', JSON.stringify(cleaned));
     } catch (e) {
       console.warn('Could not update localStorage:', e);
     }
@@ -75,10 +76,11 @@ export default function App() {
       if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
         if (data && typeof data === 'object' && Array.isArray(data.persons)) {
+          const cleaned = removeTreePhotos(data);
           setTreeData((prev) => {
-            if (!prev.persons || prev.persons.length === 0 || data.persons.length > prev.persons.length) {
-              localStorage.setItem('khetan_family_tree', JSON.stringify(data));
-              return data;
+            if (!prev.persons || prev.persons.length === 0 || cleaned.persons.length > prev.persons.length) {
+              localStorage.setItem('khetan_family_tree', JSON.stringify(cleaned));
+              return cleaned;
             }
             return prev;
           });
@@ -90,6 +92,7 @@ export default function App() {
       setIsSyncing(false);
     }
   }, []);
+
 
   // Real-time Firestore sync listener across all connected devices and browsers
   useEffect(() => {
@@ -110,10 +113,10 @@ export default function App() {
 
   // Save updated tree to cloud (Firestore & server)
   const saveTreeDataToServer = async (newTree: FamilyTreeData) => {
-    const preparedTree: FamilyTreeData = {
+    const preparedTree: FamilyTreeData = removeTreePhotos({
       ...newTree,
       lastUpdated: new Date().toISOString(),
-    };
+    });
 
     // Immediate optimistic state update to React state & LocalStorage
     setTreeData(preparedTree);
@@ -126,11 +129,8 @@ export default function App() {
     try {
       setIsSyncing(true);
 
-      // Compress any large photos to lightweight thumbnails (~10KB) for Firestore
-      const compressedTree = await sanitizeAndCompressTreePhotos(preparedTree);
-
       // Save to Firebase Firestore for instant real-time sync on all devices
-      await saveTreeToFirestore(compressedTree);
+      await saveTreeToFirestore(preparedTree);
 
       // Also try express server backend
       await fetch('/api/tree', {
@@ -139,7 +139,7 @@ export default function App() {
           'Content-Type': 'application/json',
           'x-edit-password': editPassword || 'Family1234',
         },
-        body: JSON.stringify(compressedTree),
+        body: JSON.stringify(preparedTree),
       }).catch(() => {});
     } catch (err) {
       console.error('Error saving tree to cloud:', err);

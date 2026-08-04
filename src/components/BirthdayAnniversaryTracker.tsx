@@ -68,24 +68,14 @@ export const BirthdayAnniversaryTracker: React.FC<BirthdayAnniversaryTrackerProp
               onClick={() => onSelectPerson(person)}
               className="bg-white border border-[#1A1A1A] p-4 flex items-center justify-between gap-3 transition cursor-pointer shadow-[4px_4px_0px_#1A1A1A] hover:shadow-[6px_6px_0px_#1A1A1A] hover:translate-x-[-1px] hover:translate-y-[-1px]"
             >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <img
-                  src={
-                    person.avatarUrl ||
-                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'
-                  }
-                  alt={person.name}
-                  className="w-12 h-12 border border-[#1A1A1A] object-cover shrink-0"
-                />
-                <div className="min-w-0">
-                  <h3 className="text-sm font-serif font-bold text-[#1A1A1A] truncate">{nameDisplay}</h3>
-                  <div className="flex items-center gap-2 text-xs text-[#555] font-sans mt-0.5">
-                    <span className="italic">{formattedDate}</span>
-                    <span>•</span>
-                    <span className="text-[#C2410C] font-semibold">
-                      Turning {turningAge} {t(language, 'age')}
-                    </span>
-                  </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-serif font-bold text-[#1A1A1A] truncate">{nameDisplay}</h3>
+                <div className="flex items-center gap-2 text-xs text-[#555] font-sans mt-0.5">
+                  <span className="italic">{formattedDate}</span>
+                  <span>•</span>
+                  <span className="text-[#C2410C] font-semibold">
+                    Turning {turningAge} {t(language, 'age')}
+                  </span>
                 </div>
               </div>
 

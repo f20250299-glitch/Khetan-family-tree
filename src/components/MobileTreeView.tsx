@@ -688,28 +688,18 @@ export const MobileTreeView: React.FC<MobileTreeViewProps> = ({
                   </div>
                 )}
 
-                {/* Avatar */}
-                <div className="relative shrink-0">
-                  <img
-                    src={
-                      person.avatarUrl ||
-                      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'
-                    }
-                    alt={person.name}
-                    className="w-12 h-12 object-cover border border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]"
-                  />
-                  {!person.isAlive && (
-                    <span className="absolute -top-1 -right-1 bg-[#1A1A1A] text-white border border-[#1A1A1A] text-[9px] px-1 font-serif font-bold">
-                      †
-                    </span>
-                  )}
-                </div>
-
                 {/* Person Details */}
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-xs font-serif font-bold text-[#1A1A1A] truncate leading-tight">
-                    {nameDisplay}
-                  </h3>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <h3 className="text-xs font-serif font-bold text-[#1A1A1A] truncate leading-tight">
+                      {nameDisplay}
+                    </h3>
+                    {!person.isAlive && (
+                      <span className="text-[9px] bg-[#1A1A1A] text-white px-1 font-serif font-bold shrink-0">
+                        †
+                      </span>
+                    )}
+                  </div>
                   {altNameDisplay && (
                     <p className="text-[10px] text-[#C2410C] font-serif italic truncate">
                       {altNameDisplay}

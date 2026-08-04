@@ -118,11 +118,6 @@ export const GenerationListView: React.FC<GenerationListViewProps> = ({
                   className="bg-white border border-[#1A1A1A] p-4 flex items-center justify-between gap-3 transition cursor-pointer shadow-[4px_4px_0px_#1A1A1A] hover:shadow-[6px_6px_0px_#1A1A1A] hover:translate-x-[-1px] hover:translate-y-[-1px] group"
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <img
-                      src={person.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
-                      alt={person.name}
-                      className="w-12 h-12 border border-[#1A1A1A] object-cover shrink-0"
-                    />
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
                         <h3 className="text-sm font-serif font-bold text-[#1A1A1A] truncate group-hover:text-[#C2410C] transition">
