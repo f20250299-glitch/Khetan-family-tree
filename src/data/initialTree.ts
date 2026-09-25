@@ -14,7 +14,7 @@ export const AVATAR_PRESETS = [
 export const INITIAL_FAMILY_TREE: FamilyTreeData = {
   title: 'Khetan Family Tree',
   titleHindi: 'खेतान परिवार वृक्ष',
-  editPasswordHash: 'Family1234', // Updated password
+  editPasswordHash: 'Dev2006',
   lastUpdated: new Date().toISOString(),
   persons: [],
 };

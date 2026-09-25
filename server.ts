@@ -20,12 +20,13 @@ function loadTreeData(): FamilyTreeData {
     if (fs.existsSync(DATA_FILE)) {
       const raw = fs.readFileSync(DATA_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
-      // Migrate legacy Sharma data or old default password if needed
-      if (!parsed.title || parsed.title.includes('Sharma') || parsed.editPasswordHash === 'family123') {
+      // Migrate legacy data or old default passwords if needed
+      const existingHash = String(parsed.editPasswordHash || '').trim().toLowerCase();
+      if (!parsed.title || parsed.title.includes('Sharma') || !parsed.editPasswordHash || existingHash === 'family123' || existingHash === 'family1234') {
         const freshState: FamilyTreeData = {
           title: 'Khetan Family Tree',
           titleHindi: 'खेतान परिवार वृक्ष',
-          editPasswordHash: 'Family1234',
+          editPasswordHash: 'Dev2006',
           lastUpdated: new Date().toISOString(),
           persons: parsed.persons && !parsed.title.includes('Sharma') ? parsed.persons : [],
         };
@@ -69,7 +70,7 @@ async function startServer() {
   api.post('/verify-password', (req, res) => {
     const { password } = req.body;
     const data = loadTreeData();
-    const currentPass = data.editPasswordHash || 'Family1234';
+    const currentPass = data.editPasswordHash || 'Dev2006';
 
     const cleanProvided = String(password || '').trim();
     const cleanCurrent = String(currentPass || '').trim();
@@ -85,7 +86,7 @@ async function startServer() {
   const requirePassword = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const providedPass = req.headers['x-edit-password'];
     const data = loadTreeData();
-    const currentPass = data.editPasswordHash || 'Family1234';
+    const currentPass = data.editPasswordHash || 'Dev2006';
 
     const cleanProvided = String(providedPass || '').trim().toLowerCase();
     const cleanCurrent = String(currentPass || '').trim().toLowerCase();
@@ -93,8 +94,7 @@ async function startServer() {
     if (
       !providedPass ||
       cleanProvided === cleanCurrent ||
-      cleanProvided === 'family1234' ||
-      cleanProvided === 'family123'
+      cleanProvided === 'dev2006'
     ) {
       next();
     } else {
@@ -112,7 +112,7 @@ async function startServer() {
     const currentData = loadTreeData();
     const updatedData: FamilyTreeData = {
       ...newTreeData,
-      editPasswordHash: currentData.editPasswordHash || 'Family1234',
+      editPasswordHash: currentData.editPasswordHash || 'Dev2006',
       lastUpdated: new Date().toISOString(),
     };
 

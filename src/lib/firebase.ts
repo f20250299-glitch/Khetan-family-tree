@@ -49,6 +49,11 @@ export function subscribeToTree(onUpdate: (data: FamilyTreeData) => void): () =>
     if (snapshot.exists()) {
       const data = snapshot.data() as FamilyTreeData;
       if (data && Array.isArray(data.persons)) {
+        const pass = String(data.editPasswordHash || '').trim().toLowerCase();
+        if (!data.editPasswordHash || pass === 'family123' || pass === 'family1234') {
+          data.editPasswordHash = 'Dev2006';
+          saveTreeToFirestore(data).catch(() => {});
+        }
         onUpdate(data);
       }
     }

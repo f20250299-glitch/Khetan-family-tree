@@ -26,8 +26,9 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
         if (parsed) {
-          if (!parsed.editPasswordHash || parsed.editPasswordHash.toLowerCase() === 'family123') {
-            parsed.editPasswordHash = 'Family1234';
+          const pass = String(parsed.editPasswordHash || '').trim().toLowerCase();
+          if (!parsed.editPasswordHash || pass === 'family123' || pass === 'family1234') {
+            parsed.editPasswordHash = 'Dev2006';
           }
           return removeTreePhotos(parsed);
         }
@@ -59,6 +60,10 @@ export default function App() {
     if (!incomingTree || !Array.isArray(incomingTree.persons)) return;
 
     const cleaned = removeTreePhotos(incomingTree);
+    const incomingPass = String(cleaned.editPasswordHash || '').trim().toLowerCase();
+    if (!cleaned.editPasswordHash || incomingPass === 'family123' || incomingPass === 'family1234') {
+      cleaned.editPasswordHash = 'Dev2006';
+    }
 
     setTreeData((prev) => {
       if (!prev || !Array.isArray(prev.persons) || prev.persons.length === 0) {
@@ -161,7 +166,7 @@ export default function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-edit-password': editPassword || 'Family1234',
+          'x-edit-password': editPassword || 'Dev2006',
         },
         body: JSON.stringify(preparedTree),
       }).catch(() => {});
@@ -176,13 +181,14 @@ export default function App() {
   const handleVerifyPassword = async (pass: string): Promise<boolean> => {
     const rawPass = pass.trim();
     const cleanPass = rawPass.toLowerCase();
-    const currentPassword = (treeData.editPasswordHash || 'Family1234').trim().toLowerCase();
+    let currentPassword = String(treeData.editPasswordHash || 'Dev2006').trim();
+    const cleanCurrent = currentPassword.toLowerCase();
+    const effectiveTarget = (cleanCurrent === 'family123' || cleanCurrent === 'family1234') ? 'Dev2006' : currentPassword;
 
-    // Direct client-side verification for Vercel/Static hosting or when API backend is absent
+    // Direct client-side verification - only Dev2006 or customized active password is accepted
     const isPassValid =
-      cleanPass === currentPassword ||
-      cleanPass === 'family1234' ||
-      cleanPass === 'family123';
+      cleanPass === effectiveTarget.toLowerCase() ||
+      cleanPass === 'dev2006';
 
     if (isPassValid) {
       setEditPassword(rawPass);
@@ -191,10 +197,11 @@ export default function App() {
       // Ensure local state and localStorage carry the normalized valid password
       const updatedTree = {
         ...treeData,
-        editPasswordHash: rawPass,
+        editPasswordHash: effectiveTarget === 'Dev2006' ? 'Dev2006' : rawPass,
       };
       setTreeData(updatedTree);
       localStorage.setItem('khetan_family_tree', JSON.stringify(updatedTree));
+      saveTreeToFirestore(updatedTree).catch(() => {});
 
       // Attempt server ping if backend is active
       try {
@@ -252,7 +259,7 @@ export default function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-edit-password': editPassword || 'Family1234',
+          'x-edit-password': editPassword || 'Dev2006',
         },
         body: JSON.stringify({ newPassword: cleanNewPass }),
       }).catch(() => {});
@@ -268,7 +275,7 @@ export default function App() {
   const handleResetTree = async () => {
     const resetTree: FamilyTreeData = {
       ...INITIAL_FAMILY_TREE,
-      editPasswordHash: treeData.editPasswordHash || 'Family1234',
+      editPasswordHash: treeData.editPasswordHash || 'Dev2006',
       lastUpdated: new Date().toISOString(),
     };
 
@@ -281,7 +288,7 @@ export default function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-edit-password': editPassword || 'Family1234',
+          'x-edit-password': editPassword || 'Dev2006',
         },
       }).catch(() => {});
     } catch (err) {
